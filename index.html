@@ -683,7 +683,7 @@ footer{
       <div class="product-info">
         <p class="product-name">Short Moletom Bandana</p>
         <div class="product-details">
-          <span class="product-price">R$ 250</span>
+          <span class="product-price">R$ 218</span>
           <div class="product-colors"><div class="color-dot  active" style="background:#1C1C1C" onclick="event.stopPropagation();this.parentNode.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));this.classList.add('active')"></div><div class="color-dot" style="background:#6B3A2A" onclick="event.stopPropagation();this.parentNode.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));this.classList.add('active')"></div><div class="color-dot" style="background:#3264AA" onclick="event.stopPropagation();this.parentNode.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));this.classList.add('active')"></div></div>
         </div>
       </div>
@@ -699,7 +699,7 @@ footer{
       <div class="product-info">
         <p class="product-name">Calça Moletom Bandana</p>
         <div class="product-details">
-          <span class="product-price">R$ 290</span>
+          <span class="product-price">R$ 310</span>
           <div class="product-colors"><div class="color-dot  active" style="background:#1C1C1C" onclick="event.stopPropagation();this.parentNode.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));this.classList.add('active')"></div><div class="color-dot" style="background:#6B7A9F" onclick="event.stopPropagation();this.parentNode.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));this.classList.add('active')"></div><div class="color-dot" style="background:#F0EDE6" onclick="event.stopPropagation();this.parentNode.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));this.classList.add('active')"></div></div>
         </div>
       </div>
@@ -715,7 +715,7 @@ footer{
       <div class="product-info">
         <p class="product-name">Regata Básica</p>
         <div class="product-details">
-          <span class="product-price">R$ 160</span>
+          <span class="product-price">R$ 130</span>
           <div class="product-colors"><div class="color-dot  active" style="background:#6B3A2A" onclick="event.stopPropagation();this.parentNode.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));this.classList.add('active')"></div><div class="color-dot" style="background:#1C1C1C" onclick="event.stopPropagation();this.parentNode.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));this.classList.add('active')"></div><div class="color-dot" style="background:#8B2252" onclick="event.stopPropagation();this.parentNode.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));this.classList.add('active')"></div></div>
         </div>
       </div>
@@ -779,7 +779,7 @@ footer{
       <div class="product-info">
         <p class="product-name">Bata Pipa</p>
         <div class="product-details">
-          <span class="product-price">R$ 235</span>
+          <span class="product-price">R$ 228</span>
           <div class="product-colors"><div class="color-dot  active" style="background:#E8DDD0" onclick="event.stopPropagation();this.parentNode.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));this.classList.add('active')"></div><div class="color-dot" style="background:#1C1C1C" onclick="event.stopPropagation();this.parentNode.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));this.classList.add('active')"></div></div>
         </div>
       </div>
@@ -795,7 +795,7 @@ footer{
       <div class="product-info">
         <p class="product-name">Saia Pipa</p>
         <div class="product-details">
-          <span class="product-price">R$ 220</span>
+          <span class="product-price">R$ 235</span>
           <div class="product-colors"><div class="color-dot  active" style="background:#1C1C1C" onclick="event.stopPropagation();this.parentNode.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));this.classList.add('active')"></div><div class="color-dot" style="background:#F0EDE6" onclick="event.stopPropagation();this.parentNode.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));this.classList.add('active')"></div></div>
         </div>
       </div>
@@ -980,12 +980,25 @@ function notifyOwnerCart(){
     endereco:"-"
   }).catch(()=>{});
 }
+function notifyOwnerCart(){
+  const itens=cart.map(i=>`${i.name} | Tam: ${i.size||'-'} | Cor: ${i.color||'-'} | Qtd: ${i.qty} | R$ ${i.price*i.qty}`).join("\n");
+  const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  emailjs.init("6UodwItl3CgP6U0HF");
+  emailjs.send("service_mh3ylov","template_1fy01hk",{
+    to_email:"contatocanuu@gmail.com",
+    nome:"🛒 Carrinho salvo — cliente ainda não finalizou",
+    itens:itens,
+    total:"R$ "+total,
+    telefone:"-",
+    endereco:"-"
+  }).catch(()=>{});
+}
+
 function addToCart(id){
   const p=products.find(x=>x.id===id);
   const e=cart.find(x=>x.id===id);
   if(e)e.qty++;else cart.push({...p,qty:1});
   updateCartUI();showToast(`${p.name} adicionado ✓`);
-  // Notify owner after 20s of inactivity
   clearTimeout(cartTimer);
   cartTimer=setTimeout(notifyOwnerCart,20000);
 }
@@ -1154,6 +1167,9 @@ function addFromModal(){
   updateCartUI();
   showToast(pmProduct.name + ' adicionado ✓');
   closePM();
+  // Notificar owner após 20s
+  clearTimeout(cartTimer);
+  cartTimer=setTimeout(notifyOwnerCart,20000);
 }
 renderProducts();
 
