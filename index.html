@@ -1421,5 +1421,112 @@ document.getElementById('productsGrid').addEventListener('click', function(e){
     </div>
   </div>
 </div>
+
+<!-- ===== TRACKING CANU ===== -->
+<script>
+// URL do Apps Script — substitua após o deploy
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyP0yY2dOOb-UtNq4HuaH7KqG_fZ5H8L-MQ2PPES15S4rLIfHPpF3GMkbs_2dcT_FlT7Q/exec';
+
+// Gera ou recupera sessionId único por sessão
+function getSessionId() {
+  let sid = sessionStorage.getItem('canu_session');
+  if (!sid) {
+    sid = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    sessionStorage.setItem('canu_session', sid);
+  }
+  return sid;
+}
+
+// Envia evento para o Apps Script
+function trackEvent(tipo, dados) {
+  try {
+    const payload = JSON.stringify({
+      tipo,
+      sessionId: getSessionId(),
+      timestamp: new Date().toISOString(),
+      ...dados
+    });
+    fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload
+    }).catch(() => {}); // silencia erro de rede
+  } catch(e) {}
+}
+
+// Envia via sendBeacon (garante envio mesmo ao sair da página)
+function trackBeacon(tipo, dados) {
+  try {
+    const payload = JSON.stringify({
+      tipo,
+      sessionId: getSessionId(),
+      timestamp: new Date().toISOString(),
+      ...dados
+    });
+    navigator.sendBeacon(APPS_SCRIPT_URL, new Blob([payload], { type: 'application/json' }));
+  } catch(e) {}
+}
+
+// Rastreia seleção de cor no modal
+document.addEventListener('click', function(e) {
+  const dot = e.target.closest('.pm-color-dot');
+  if (dot && window.pmProduct) {
+    trackEvent('produto_selecionado', {
+      produto: pmProduct.name,
+      preco: pmProduct.price,
+      cor: dot.style.background,
+      tamanho: pmSelectedSize || '-'
+    });
+  }
+});
+
+// Rastreia seleção de tamanho no modal
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.pm-size-btn');
+  if (btn && window.pmProduct) {
+    trackEvent('produto_selecionado', {
+      produto: pmProduct.name,
+      preco: pmProduct.price,
+      cor: (document.querySelector('.pm-color-dot.active') || {}).style?.background || '-',
+      tamanho: btn.textContent.trim()
+    });
+  }
+});
+
+// Rastreia clique em "Finalizar compra"
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.checkout-btn')) {
+    const itens = (window.cart || []).map(i =>
+      `${i.name} | Tam: ${i.size||'-'} | Cor: ${i.color||'-'} | Qtd: ${i.qty}`
+    ).join(' / ');
+    const total = (window.cart || []).reduce((s, i) => s + i.price * i.qty, 0);
+    trackEvent('checkout_iniciado', {
+      itens,
+      total: 'R$ ' + total
+    });
+  }
+});
+
+// Rastreia submit do formulário (compra finalizada)
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.form-submit')) {
+    const nome  = document.getElementById('fNome')?.value || '-';
+    const email = document.getElementById('fEmail')?.value || '-';
+    const tel   = document.getElementById('fTel')?.value  || '-';
+    const end   = document.getElementById('fEnd')?.value  || '-';
+    const itens = (window.cart || []).map(i =>
+      `${i.name} | Tam: ${i.size||'-'} | Cor: ${i.color||'-'} | Qtd: ${i.qty} | R$ ${i.price*i.qty}`
+    ).join(' / ');
+    const total = (window.cart || []).reduce((s, i) => s + i.price * i.qty, 0);
+    trackBeacon('compra_finalizada', {
+      nome, email, telefone: tel, endereco: end,
+      itens,
+      total: 'R$ ' + total
+    });
+  }
+});
+</script>
+<!-- ===== FIM TRACKING ===== -->
 </body>
 </html>
