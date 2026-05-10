@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Canu — Painel Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --blue:#3264AA;
+  --blue-dark:#1C2B42;
+  --cru:#F0EDE6;
+  --white:#FFFFFF;
+  --muted:#6B7A8F;
+  --border:#DDD9D3;
+  --green:#2ECC71;
+  --red:#E74C3C;
+  --yellow:#F39C12;
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cru);color:var(--blue-dark);}
+
+/* LOGIN */
+.login-screen{
+  min-height:100vh;display:flex;align-items:center;
+  justify-content:center;padding:20px;
+}
+.login-box{
+  background:var(--white);padding:48px;
+  width:100%;max-width:420px;
+  border:1px solid var(--border);
+}
+.login-logo{
+  font-family:serif;font-size:36px;font-weight:300;
+  color:var(--blue);letter-spacing:.1em;
+  text-align:center;margin-bottom:8px;
+}
+.login-sub{
+  text-align:center;font-size:13px;color:var(--muted);
+  margin-bottom:36px;
+}
+.login-field{margin-bottom:20px;}
+.login-label{
+  display:block;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;font-weight:500;
+  color:var(--muted);margin-bottom:8px;
+}
+.login-input{
+  width:100%;padding:12px;border:1px solid var(--border);
+  background:var(--cru);font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:14px;color:var(--blue-dark);outline:none;
+  transition:border-color .2s;
+}
+.login-input:focus{border-color:var(--blue);}
+.login-btn{
+  width:100%;padding:14px;background:var(--blue);
+  color:var(--white);border:none;cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:13px;font-weight:500;letter-spacing:.1em;
+  text-transform:uppercase;transition:background .2s;
+  margin-top:8px;
+}
+.login-btn:hover{background:var(--blue-dark);}
+.login-error{
+  color:var(--red);font-size:13px;text-align:center;
+  margin-top:12px;display:none;
+}
+
+/* ADMIN PANEL */
+.admin-screen{display:none;}
+.admin-nav{
+  background:var(--blue-dark);color:var(--white);
+  padding:16px 32px;display:flex;align-items:center;
+  justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.admin-logo{font-family:serif;font-size:24px;letter-spacing:.1em;color:var(--white);}
+.admin-nav-right{display:flex;align-items:center;gap:16px;}
+.admin-refresh{
+  background:rgba(255,255,255,.15);border:none;color:var(--white);
+  padding:8px 16px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:12px;font-weight:500;transition:background .2s;
+}
+.admin-refresh:hover{background:rgba(255,255,255,.25);}
+.admin-logout{
+  background:none;border:1px solid rgba(255,255,255,.3);
+  color:rgba(255,255,255,.7);padding:8px 16px;cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;
+  transition:all .2s;
+}
+.admin-logout:hover{border-color:var(--white);color:var(--white);}
+
+.admin-body{padding:32px;max-width:1200px;margin:0 auto;}
+
+/* CARDS */
+.cards-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;}
+.card{
+  background:var(--white);padding:24px;
+  border:1px solid var(--border);
+}
+.card-label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:500;margin-bottom:8px;}
+.card-value{font-size:32px;font-weight:600;color:var(--blue);}
+.card-sub{font-size:12px;color:var(--muted);margin-top:4px;}
+
+/* TABS */
+.tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:2px solid var(--border);}
+.tab{
+  padding:12px 24px;background:none;border:none;cursor:pointer;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;
+  font-weight:500;color:var(--muted);
+  border-bottom:2px solid transparent;margin-bottom:-2px;
+  transition:all .2s;
+}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue);}
+.tab:hover:not(.active){color:var(--blue-dark);}
+
+/* TABLES */
+.table-wrapper{
+  background:var(--white);border:1px solid var(--border);
+  overflow-x:auto;
+}
+.table-header{
+  padding:20px 24px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.table-title{font-size:15px;font-weight:600;}
+.table-search{
+  padding:8px 12px;border:1px solid var(--border);
+  background:var(--cru);font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:13px;outline:none;width:220px;
+}
+.table-search:focus{border-color:var(--blue);}
+table{width:100%;border-collapse:collapse;}
+th{
+  padding:12px 16px;text-align:left;
+  font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  font-weight:600;color:var(--muted);
+  border-bottom:1px solid var(--border);
+  background:var(--cru);white-space:nowrap;
+}
+td{
+  padding:14px 16px;font-size:13px;
+  border-bottom:1px solid var(--border);
+  vertical-align:top;
+}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#f8f6f2;}
+.badge{
+  display:inline-block;padding:3px 10px;
+  font-size:11px;font-weight:500;border-radius:2px;
+}
+.badge-green{background:#d4f5e2;color:#1a7a40;}
+.badge-yellow{background:#fef3cd;color:#856404;}
+.badge-red{background:#fde8e8;color:#9b1c1c;}
+
+/* SECTION TITLE */
+.section-title{
+  font-size:18px;font-weight:600;margin-bottom:16px;
+  color:var(--blue-dark);
+}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* LOADING */
+.loading{
+  text-align:center;padding:48px;color:var(--muted);
+  font-size:14px;
+}
+.spinner{
+  display:inline-block;width:24px;height:24px;
+  border:2px solid var(--border);
+  border-top-color:var(--blue);
+  border-radius:50%;animation:spin .8s linear infinite;
+  margin-bottom:8px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ITENS LIST */
+.itens-cell{max-width:280px;}
+.item-line{
+  font-size:12px;padding:2px 0;
+  color:var(--blue-dark);
+}
+.item-line:not(:last-child){border-bottom:1px dashed var(--border);}
+
+@media(max-width:768px){
+  .cards-row{grid-template-columns:repeat(2,1fr);}
+  .admin-body{padding:16px;}
+  .tab{padding:10px 16px;font-size:12px;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">Canu</div>
+    <p class="login-sub">Painel Administrativo</p>
+    <div class="login-field">
+      <label class="login-label">Email</label>
+      <input class="login-input" type="email" id="loginEmail" placeholder="contatocanuu@gmail.com"/>
+    </div>
+    <div class="login-field">
+      <label class="login-label">Senha</label>
+      <input class="login-input" type="password" id="loginPass" placeholder="••••••••"
+        onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="login-btn" onclick="doLogin()">Entrar →</button>
+    <p class="login-error" id="loginError">Email ou senha incorretos.</p>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="admin-screen" id="adminScreen">
+  <nav class="admin-nav">
+    <span class="admin-logo">Canu</span>
+    <div class="admin-nav-right">
+      <span style="font-size:12px;color:rgba(255,255,255,.6)" id="lastUpdate"></span>
+      <button class="admin-refresh" onclick="loadData()">↻ Atualizar</button>
+      <button class="admin-logout" onclick="doLogout()">Sair</button>
+    </div>
+  </nav>
+
+  <div class="admin-body">
+
+    <!-- CARDS -->
+    <div class="cards-row">
+      <div class="card">
+        <div class="card-label">Pedidos Finalizados</div>
+        <div class="card-value" id="cardPedidos">—</div>
+        <div class="card-sub">compras concluídas</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Ticket Médio</div>
+        <div class="card-value" id="cardTicket">—</div>
+        <div class="card-sub">por pedido</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Carrinhos Salvos</div>
+        <div class="card-value" id="cardCarrinhos">—</div>
+        <div class="card-sub">ainda não finalizaram</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Produto + Pedido</div>
+        <div class="card-value" id="cardTopProd" style="font-size:16px;padding-top:8px;">—</div>
+        <div class="card-sub">mais selecionado</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('pedidos',this)">📦 Pedidos Finalizados</button>
+      <button class="tab" onclick="showTab('carrinhos',this)">🛒 Carrinhos</button>
+      <button class="tab" onclick="showTab('produtos',this)">📊 Produtos</button>
+    </div>
+
+    <!-- TAB: PEDIDOS -->
+    <div class="tab-content active" id="tab-pedidos">
+      <div class="table-wrapper">
+        <div class="table-header">
+          <span class="table-title">Compras Finalizadas</span>
+          <input class="table-search" placeholder="Buscar por nome ou email..." oninput="filterTable('tPedidos',this.value)"/>
+        </div>
+        <div id="tPedidos"><div class="loading"><div class="spinner"></div><br/>Carregando...</div></div>
+      </div>
+    </div>
+
+    <!-- TAB: CARRINHOS -->
+    <div class="tab-content" id="tab-carrinhos">
+      <div class="table-wrapper">
+        <div class="table-header">
+          <span class="table-title">Carrinhos Salvos (não finalizados)</span>
+        </div>
+        <div id="tCarrinhos"><div class="loading"><div class="spinner"></div><br/>Carregando...</div></div>
+      </div>
+    </div>
+
+    <!-- TAB: PRODUTOS -->
+    <div class="tab-content" id="tab-produtos">
+      <div class="table-wrapper">
+        <div class="table-header">
+          <span class="table-title">Produtos Mais Selecionados</span>
+        </div>
+        <div id="tProdutos"><div class="loading"><div class="spinner"></div><br/>Carregando...</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ===== CONFIGURAÇÃO =====
+const SHEET_ID = '1vEquDbe4CdMLwFb-hO11bCg-j3e1kP2UCK7QK2TCR2A';
+const ADMIN_EMAIL = 'contatocanuu@gmail.com';
+const ADMIN_PASS  = 'canu2025'; // troque para sua senha
+
+// ===== LOGIN =====
+function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  if(email === ADMIN_EMAIL && pass === ADMIN_PASS){
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminScreen').style.display = 'block';
+    sessionStorage.setItem('canu_admin','1');
+    loadData();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+
+function doLogout(){
+  sessionStorage.removeItem('canu_admin');
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('adminScreen').style.display = 'none';
+}
+
+// Auto-login se já estava logado
+if(sessionStorage.getItem('canu_admin')){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('adminScreen').style.display='block';
+}
+
+// ===== TABS =====
+function showTab(name, btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ===== BUSCAR DADOS DO GOOGLE SHEETS =====
+async function fetchSheet(aba){
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(aba)}`;
+  const res = await fetch(url);
+  const text = await res.text();
+  return parseCSV(text);
+}
+
+function parseCSV(text){
+  const rows = text.trim().split('\n');
+  return rows.map(row => {
+    const cells = [];
+    let cur = '', inQ = false;
+    for(let c of row){
+      if(c==='"') inQ=!inQ;
+      else if(c===',' && !inQ){ cells.push(cur); cur=''; }
+      else cur+=c;
+    }
+    cells.push(cur);
+    return cells.map(c=>c.trim());
+  });
+}
+
+// ===== CARREGAR DADOS =====
+let dadosPedidos=[], dadosCarrinhos=[], dadosProdutos=[];
+
+async function loadData(){
+  document.getElementById('lastUpdate').textContent = 'Carregando...';
+  try {
+    const [p, c, pr] = await Promise.all([
+      fetchSheet('compra_finalizada'),
+      fetchSheet('checkout_iniciado'),
+      fetchSheet('produto_selecionado')
+    ]);
+
+    dadosPedidos   = p.slice(1).filter(r=>r[0]);
+    dadosCarrinhos = c.slice(1).filter(r=>r[0]);
+    dadosProdutos  = pr.slice(1).filter(r=>r[0]);
+
+    renderCards();
+    renderPedidos(dadosPedidos);
+    renderCarrinhos(dadosCarrinhos);
+    renderProdutos(dadosProdutos);
+
+    document.getElementById('lastUpdate').textContent =
+      'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
+  } catch(e){
+    document.getElementById('lastUpdate').textContent = 'Erro ao carregar';
+    console.error(e);
+  }
+}
+
+// ===== CARDS =====
+function renderCards(){
+  document.getElementById('cardPedidos').textContent = dadosPedidos.length;
+
+  // Ticket médio
+  const totais = dadosPedidos.map(r => parseFloat((r[7]||'0').replace('R$','').replace(',','.').trim())).filter(n=>!isNaN(n));
+  const media = totais.length ? (totais.reduce((a,b)=>a+b,0)/totais.length) : 0;
+  document.getElementById('cardTicket').textContent = 'R$ ' + media.toFixed(0);
+
+  // Carrinhos não finalizados (sessões únicas em checkout mas não em pedidos)
+  const sessionsPedidos = new Set(dadosPedidos.map(r=>r[1]));
+  const abandonados = dadosCarrinhos.filter(r=>!sessionsPedidos.has(r[1]));
+  document.getElementById('cardCarrinhos').textContent = abandonados.length;
+
+  // Produto mais pedido
+  const freq = {};
+  dadosProdutos.forEach(r=>{ const p=r[2]||'?'; freq[p]=(freq[p]||0)+1; });
+  const top = Object.entries(freq).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('cardTopProd').textContent = top ? top[0].split(' ').slice(0,2).join(' ') : '—';
+}
+
+// ===== PEDIDOS =====
+function renderPedidos(rows){
+  if(!rows.length){
+    document.getElementById('tPedidos').innerHTML = '<div class="loading">Nenhum pedido ainda.</div>';
+    return;
+  }
+  let html = '<table><thead><tr><th>Data</th><th>Nome</th><th>Email</th><th>Telefone</th><th>Endereço</th><th>Itens</th><th>Total</th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    const [ts,sid,nome,email,tel,end,itens,total] = r;
+    const data = ts ? new Date(ts).toLocaleString('pt-BR') : '-';
+    const itensHtml = (itens||'').split('/').map(i=>`<div class="item-line">${i.trim()}</div>`).join('');
+    html += `<tr>
+      <td style="white-space:nowrap;font-size:12px;">${data}</td>
+      <td><strong>${nome||'-'}</strong></td>
+      <td><a href="mailto:${email}" style="color:var(--blue)">${email||'-'}</a></td>
+      <td>${tel||'-'}</td>
+      <td style="font-size:12px;">${end||'-'}</td>
+      <td class="itens-cell">${itensHtml}</td>
+      <td><strong style="color:var(--blue)">${total||'-'}</strong></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('tPedidos').innerHTML = html;
+}
+
+// ===== CARRINHOS =====
+function renderCarrinhos(rows){
+  const sessionsPedidos = new Set(dadosPedidos.map(r=>r[1]));
+  if(!rows.length){
+    document.getElementById('tCarrinhos').innerHTML = '<div class="loading">Nenhum carrinho salvo ainda.</div>';
+    return;
+  }
+  let html = '<table><thead><tr><th>Data</th><th>Itens</th><th>Total</th><th>Status</th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    const [ts,sid,itens,total] = r;
+    const data = ts ? new Date(ts).toLocaleString('pt-BR') : '-';
+    const finalizado = sessionsPedidos.has(sid);
+    const badge = finalizado
+      ? '<span class="badge badge-green">Finalizado</span>'
+      : '<span class="badge badge-yellow">Abandonado</span>';
+    const itensHtml = (itens||'').split('/').map(i=>`<div class="item-line">${i.trim()}</div>`).join('');
+    html += `<tr>
+      <td style="white-space:nowrap;font-size:12px;">${data}</td>
+      <td class="itens-cell">${itensHtml}</td>
+      <td><strong>${total||'-'}</strong></td>
+      <td>${badge}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('tCarrinhos').innerHTML = html;
+}
+
+// ===== PRODUTOS =====
+function renderProdutos(rows){
+  if(!rows.length){
+    document.getElementById('tProdutos').innerHTML = '<div class="loading">Nenhum dado ainda.</div>';
+    return;
+  }
+  const freq = {};
+  rows.forEach(r=>{
+    const prod = r[2]||'?';
+    if(!freq[prod]) freq[prod]={total:0,cores:{},tamanhos:{}};
+    freq[prod].total++;
+    const cor = r[4]||'-'; freq[prod].cores[cor]=(freq[prod].cores[cor]||0)+1;
+    const tam = r[5]||'-'; freq[prod].tamanhos[tam]=(freq[prod].tamanhos[tam]||0)+1;
+  });
+  const sorted = Object.entries(freq).sort((a,b)=>b[1].total-a[1].total);
+  let html = '<table><thead><tr><th>Produto</th><th>Vezes Selecionado</th><th>Cor Mais Escolhida</th><th>Tamanho Mais Escolhido</th></tr></thead><tbody>';
+  sorted.forEach(([prod,d])=>{
+    const topCor = Object.entries(d.cores).sort((a,b)=>b[1]-a[1])[0]?.[0]||'-';
+    const topTam = Object.entries(d.tamanhos).sort((a,b)=>b[1]-a[1])[0]?.[0]||'-';
+    html += `<tr>
+      <td><strong>${prod}</strong></td>
+      <td><span class="badge badge-green">${d.total}x</span></td>
+      <td><span style="display:inline-block;width:14px;height:14px;background:${topCor};border-radius:50%;border:1px solid #ddd;vertical-align:middle;margin-right:6px"></span>${topCor}</td>
+      <td><strong>${topTam}</strong></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('tProdutos').innerHTML = html;
+}
+
+// ===== BUSCA =====
+function filterTable(tableId, query){
+  const el = document.getElementById(tableId);
+  const rows = el.querySelectorAll('tbody tr');
+  const q = query.toLowerCase();
+  rows.forEach(row=>{
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+// Auto-refresh a cada 60 segundos
+setInterval(()=>{ if(sessionStorage.getItem('canu_admin')) loadData(); }, 60000);
+
+// Auto-login se sessão ativa
+if(sessionStorage.getItem('canu_admin')){
+  loadData();
+}
+</script>
+</body>
+</html>
