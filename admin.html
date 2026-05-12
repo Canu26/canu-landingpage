@@ -48,7 +48,8 @@ tr:hover td{background:#f8f6f2;}
 .tab-content{display:none;}
 .tab-content.active{display:block;}
 .loading{text-align:center;padding:48px;color:#6B7A8F;font-size:14px;}
-.item-line{font-size:12px;padding:2px 0;}
+.item-line{font-size:12px;padding:2px 0;border-bottom:1px dashed #eee;}
+.item-line:last-child{border-bottom:none;}
 @media(max-width:768px){.cards-row{grid-template-columns:repeat(2,1fr);}.admin-body{padding:16px;}}
 </style>
 </head>
@@ -119,16 +120,15 @@ tr:hover td{background:#f8f6f2;}
 <script>
 const ADMIN_EMAIL = 'contatocanuu@gmail.com';
 const ADMIN_PASS  = 'canu2025';
-const SHEET_ID    = '1vEquDbe4CdMLwFb-hO11bCg-j3e1kP2UCK7QK2TCR2A';
-const SHEET_PUB   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQWAX-9PewKh4K0ybeMN-HxgjrysIzxNo-TzztLEBNsyanZn2F_GcbRRHM1oueCm3J02TpBT08FjBwj/pub?output=csv&sheet=';
+const APPS_URL    = 'https://script.google.com/macros/s/AKfycbwnrxEOx_DqM8L0KDmXusU0h3Hnzwetwh6A_eqpq7LiSQtOszsX2ImP9vA2kVoh6H8Xog/exec';
 
 function doLogin(){
-  if(document.getElementById('loginEmail').value.trim()===ADMIN_EMAIL && document.getElementById('loginPass').value===ADMIN_PASS){
+  if(document.getElementById('loginEmail').value.trim()===ADMIN_EMAIL&&document.getElementById('loginPass').value===ADMIN_PASS){
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('adminScreen').style.display='block';
     sessionStorage.setItem('canu_admin','1');
     loadData();
-  } else { document.getElementById('loginError').style.display='block'; }
+  }else{document.getElementById('loginError').style.display='block';}
 }
 function doLogout(){
   sessionStorage.removeItem('canu_admin');
@@ -142,37 +142,27 @@ if(sessionStorage.getItem('canu_admin')){
 function showTab(n,b){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+n).classList.add('active'); b.classList.add('active');
-}
-function parseCSV(text){
-  return text.trim().split('\n').map(row=>{
-    const cells=[]; let cur='',inQ=false;
-    for(let c of row){ if(c==='"') inQ=!inQ; else if(c===','&&!inQ){cells.push(cur);cur='';}else cur+=c; }
-    cells.push(cur); return cells.map(c=>c.trim());
-  });
-}
-async function fetchSheet(aba){
-  try{
-    const r=await fetch(SHEET_PUB+encodeURIComponent(aba)+'&t='+Date.now(),{cache:'no-store'});
-    if(!r.ok) return [];
-    const t=await r.text();
-    if(t.includes('Signin')||t.length<5) return [];
-    return parseCSV(t);
-  }catch(e){ return []; }
+  document.getElementById('tab-'+n).classList.add('active');b.classList.add('active');
 }
 let dadosPedidos=[],dadosCarrinhos=[],dadosProdutos=[];
 async function loadData(){
   document.getElementById('lastUpdate').textContent='Carregando...';
-  const [p,c,pr]=await Promise.all([fetchSheet('compra_finalizada'),fetchSheet('checkout_iniciado'),fetchSheet('produto_selecionado')]);
-  dadosPedidos  =p.length>1  ?p.slice(1).filter(r=>r[0]) :[];
-  dadosCarrinhos=c.length>1  ?c.slice(1).filter(r=>r[0]) :[];
-  dadosProdutos =pr.length>1 ?pr.slice(1).filter(r=>r[0]):[];
-  renderCards(); renderPedidos(dadosPedidos); renderCarrinhos(dadosCarrinhos); renderProdutos(dadosProdutos);
-  document.getElementById('lastUpdate').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR');
+  try{
+    const res=await fetch(APPS_URL);
+    const data=await res.json();
+    dadosPedidos  =data.compra_finalizada   ||[];
+    dadosCarrinhos=data.checkout_iniciado   ||[];
+    dadosProdutos =data.produto_selecionado ||[];
+    renderCards();renderPedidos(dadosPedidos);renderCarrinhos(dadosCarrinhos);renderProdutos(dadosProdutos);
+    document.getElementById('lastUpdate').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR');
+  }catch(e){
+    document.getElementById('lastUpdate').textContent='Erro. Verifique o Apps Script.';
+    console.error(e);
+  }
 }
 function renderCards(){
   document.getElementById('cardPedidos').textContent=dadosPedidos.length;
-  const tots=dadosPedidos.map(r=>parseFloat((r[7]||'0').replace('R$','').replace(',','.').trim())).filter(n=>!isNaN(n)&&n>0);
+  const tots=dadosPedidos.map(r=>parseFloat(String(r[7]||0).replace('R$','').replace(',','.').trim())).filter(n=>!isNaN(n)&&n>0);
   document.getElementById('cardTicket').textContent='R$ '+(tots.length?(tots.reduce((a,b)=>a+b,0)/tots.length).toFixed(0):'0');
   const sess=new Set(dadosPedidos.map(r=>r[1]));
   document.getElementById('cardCarrinhos').textContent=dadosCarrinhos.filter(r=>!sess.has(r[1])).length;
@@ -180,25 +170,26 @@ function renderCards(){
   const top=Object.entries(freq).sort((a,b)=>b[1]-a[1])[0];
   document.getElementById('cardTopProd').textContent=top?top[0].split(' ').slice(0,2).join(' '):'—';
 }
+function fmtItens(v){
+  return String(v||'').split('/').map(i=>'<div class="item-line">'+i.trim()+'</div>').join('');
+}
 function renderPedidos(rows){
   if(!rows.length){document.getElementById('tPedidos').innerHTML='<div class="loading">Nenhum pedido ainda.</div>';return;}
   let h='<table><thead><tr><th>Data</th><th>Nome</th><th>Email</th><th>Telefone</th><th>Endereço</th><th>Itens</th><th>Total</th></tr></thead><tbody>';
   rows.forEach(r=>{
     const d=r[0]?new Date(r[0]).toLocaleString('pt-BR'):'-';
-    const itens=(r[6]||'').split('/').map(i=>'<div class="item-line">'+i.trim()+'</div>').join('');
-    h+=`<tr><td style="white-space:nowrap;font-size:12px">${d}</td><td><strong>${r[2]||'-'}</strong></td><td><a href="mailto:${r[3]}" style="color:#3264AA">${r[3]||'-'}</a></td><td>${r[4]||'-'}</td><td style="font-size:12px">${r[5]||'-'}</td><td style="max-width:260px">${itens}</td><td><strong style="color:#3264AA">${r[7]||'-'}</strong></td></tr>`;
+    h+=`<tr><td style="white-space:nowrap;font-size:12px">${d}</td><td><strong>${r[2]||'-'}</strong></td><td><a href="mailto:${r[3]}" style="color:#3264AA">${r[3]||'-'}</a></td><td>${r[4]||'-'}</td><td style="font-size:12px">${r[5]||'-'}</td><td style="max-width:260px">${fmtItens(r[6])}</td><td><strong style="color:#3264AA">${r[7]||'-'}</strong></td></tr>`;
   });
   document.getElementById('tPedidos').innerHTML=h+'</tbody></table>';
 }
 function renderCarrinhos(rows){
   const sess=new Set(dadosPedidos.map(r=>r[1]));
-  if(!rows.length){document.getElementById('tCarrinhos').innerHTML='<div class="loading">Nenhum carrinho salvo ainda.</div>';return;}
+  if(!rows.length){document.getElementById('tCarrinhos').innerHTML='<div class="loading">Nenhum carrinho ainda.</div>';return;}
   let h='<table><thead><tr><th>Data</th><th>Itens</th><th>Total</th><th>Status</th></tr></thead><tbody>';
   rows.forEach(r=>{
     const d=r[0]?new Date(r[0]).toLocaleString('pt-BR'):'-';
-    const itens=(r[2]||'').split('/').map(i=>'<div class="item-line">'+i.trim()+'</div>').join('');
     const badge=sess.has(r[1])?'<span class="badge badge-green">Finalizado</span>':'<span class="badge badge-yellow">Abandonado</span>';
-    h+=`<tr><td style="white-space:nowrap;font-size:12px">${d}</td><td style="max-width:280px">${itens}</td><td><strong>${r[3]||'-'}</strong></td><td>${badge}</td></tr>`;
+    h+=`<tr><td style="white-space:nowrap;font-size:12px">${d}</td><td style="max-width:280px">${fmtItens(r[2])}</td><td><strong>${r[3]||'-'}</strong></td><td>${badge}</td></tr>`;
   });
   document.getElementById('tCarrinhos').innerHTML=h+'</tbody></table>';
 }
@@ -211,7 +202,7 @@ function renderProdutos(rows){
     const cor=r[4]||'-';freq[p].cores[cor]=(freq[p].cores[cor]||0)+1;
     const tam=r[5]||'-';freq[p].tams[tam]=(freq[p].tams[tam]||0)+1;
   });
-  let h='<table><thead><tr><th>Produto</th><th>Vezes Selecionado</th><th>Cor Mais Escolhida</th><th>Tamanho Mais Escolhido</th></tr></thead><tbody>';
+  let h='<table><thead><tr><th>Produto</th><th>Vezes</th><th>Cor Mais Escolhida</th><th>Tamanho</th></tr></thead><tbody>';
   Object.entries(freq).sort((a,b)=>b[1].total-a[1].total).forEach(([p,d])=>{
     const tc=Object.entries(d.cores).sort((a,b)=>b[1]-a[1])[0]?.[0]||'-';
     const tt=Object.entries(d.tams).sort((a,b)=>b[1]-a[1])[0]?.[0]||'-';
