@@ -22,8 +22,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#F0EDE6;color:#1C2B42
 .admin-nav{background:#1C2B42;color:#fff;padding:16px 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
 .admin-logo{font-family:serif;font-size:24px;letter-spacing:.1em;}
 .admin-nav-right{display:flex;align-items:center;gap:12px;}
-.admin-refresh{background:rgba(255,255,255,.15);border:none;color:#fff;padding:8px 16px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;}
-.admin-logout{background:none;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.7);padding:8px 16px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;}
+.btn{background:rgba(255,255,255,.15);border:none;color:#fff;padding:8px 16px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;}
+.btn-outline{background:none;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.7);padding:8px 16px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;}
 .admin-body{padding:32px;max-width:1200px;margin:0 auto;}
 .cards-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;}
 .card{background:#fff;padding:24px;border:1px solid #DDD9D3;}
@@ -34,7 +34,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:#F0EDE6;color:#1C2B42
 .tab{padding:12px 24px;background:none;border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;color:#6B7A8F;border-bottom:2px solid transparent;margin-bottom:-2px;}
 .tab.active{color:#3264AA;border-bottom-color:#3264AA;}
 .table-wrapper{background:#fff;border:1px solid #DDD9D3;overflow-x:auto;}
-.table-header{padding:20px 24px;border-bottom:1px solid #DDD9D3;display:flex;align-items:center;justify-content:space-between;}
+.table-header{padding:20px 24px;border-bottom:1px solid #DDD9D3;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
 .table-title{font-size:15px;font-weight:600;}
 .table-search{padding:8px 12px;border:1px solid #DDD9D3;background:#F0EDE6;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none;width:220px;}
 table{width:100%;border-collapse:collapse;}
@@ -48,8 +48,7 @@ tr:hover td{background:#f8f6f2;}
 .tab-content{display:none;}
 .tab-content.active{display:block;}
 .loading{text-align:center;padding:48px;color:#6B7A8F;font-size:14px;}
-.item-line{font-size:12px;padding:3px 0;border-bottom:1px dashed #DDD9D3;}
-.item-line:last-child{border-bottom:none;}
+.item-line{font-size:12px;padding:2px 0;}
 @media(max-width:768px){.cards-row{grid-template-columns:repeat(2,1fr);}.admin-body{padding:16px;}}
 </style>
 </head>
@@ -77,11 +76,10 @@ tr:hover td{background:#f8f6f2;}
     <span class="admin-logo">Canu</span>
     <div class="admin-nav-right">
       <span style="font-size:12px;color:rgba(255,255,255,.6)" id="lastUpdate"></span>
-      <button class="admin-refresh" onclick="loadData()">↻ Atualizar</button>
-      <button class="admin-logout" onclick="doLogout()">Sair</button>
+      <button class="btn" onclick="loadData()">↻ Atualizar</button>
+      <button class="btn-outline" onclick="doLogout()">Sair</button>
     </div>
   </nav>
-
   <div class="admin-body">
     <div class="cards-row">
       <div class="card"><div class="card-label">Pedidos Finalizados</div><div class="card-value" id="cardPedidos">—</div><div class="card-sub">compras concluídas</div></div>
@@ -89,13 +87,11 @@ tr:hover td{background:#f8f6f2;}
       <div class="card"><div class="card-label">Carrinhos Salvos</div><div class="card-value" id="cardCarrinhos">—</div><div class="card-sub">ainda não finalizaram</div></div>
       <div class="card"><div class="card-label">Produto + Pedido</div><div class="card-value" id="cardTopProd" style="font-size:16px;padding-top:8px;">—</div><div class="card-sub">mais selecionado</div></div>
     </div>
-
     <div class="tabs">
       <button class="tab active" onclick="showTab('pedidos',this)">📦 Pedidos Finalizados</button>
       <button class="tab" onclick="showTab('carrinhos',this)">🛒 Carrinhos</button>
       <button class="tab" onclick="showTab('produtos',this)">📊 Produtos</button>
     </div>
-
     <div class="tab-content active" id="tab-pedidos">
       <div class="table-wrapper">
         <div class="table-header">
@@ -105,14 +101,12 @@ tr:hover td{background:#f8f6f2;}
         <div id="tPedidos"><div class="loading">Carregando...</div></div>
       </div>
     </div>
-
     <div class="tab-content" id="tab-carrinhos">
       <div class="table-wrapper">
         <div class="table-header"><span class="table-title">Carrinhos Salvos</span></div>
         <div id="tCarrinhos"><div class="loading">Carregando...</div></div>
       </div>
     </div>
-
     <div class="tab-content" id="tab-produtos">
       <div class="table-wrapper">
         <div class="table-header"><span class="table-title">Produtos Mais Selecionados</span></div>
@@ -125,20 +119,16 @@ tr:hover td{background:#f8f6f2;}
 <script>
 const ADMIN_EMAIL = 'contatocanuu@gmail.com';
 const ADMIN_PASS  = 'canu2025';
+const SHEET_ID    = '1vEquDbe4CdMLwFb-hO11bCg-j3e1kP2UCK7QK2TCR2A';
 const SHEET_PUB   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQWAX-9PewKh4K0ybeMN-HxgjrysIzxNo-TzztLEBNsyanZn2F_GcbRRHM1oueCm3J02TpBT08FjBwj/pub?output=csv&sheet=';
-const SHEET_GVZ   = 'https://docs.google.com/spreadsheets/d/1vEquDbe4CdMLwFb-hO11bCg-j3e1kP2UCK7QK2TCR2A/gviz/tq?tqx=out:csv&sheet=';
 
 function doLogin(){
-  const email = document.getElementById('loginEmail').value.trim();
-  const pass  = document.getElementById('loginPass').value;
-  if(email===ADMIN_EMAIL && pass===ADMIN_PASS){
+  if(document.getElementById('loginEmail').value.trim()===ADMIN_EMAIL && document.getElementById('loginPass').value===ADMIN_PASS){
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('adminScreen').style.display='block';
     sessionStorage.setItem('canu_admin','1');
     loadData();
-  } else {
-    document.getElementById('loginError').style.display='block';
-  }
+  } else { document.getElementById('loginError').style.display='block'; }
 }
 function doLogout(){
   sessionStorage.removeItem('canu_admin');
@@ -149,170 +139,91 @@ if(sessionStorage.getItem('canu_admin')){
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('adminScreen').style.display='block';
 }
-
-function showTab(name,btn){
+function showTab(n,b){
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-  btn.classList.add('active');
+  document.getElementById('tab-'+n).classList.add('active'); b.classList.add('active');
 }
-
 function parseCSV(text){
-  const rows=text.trim().split('\n');
-  return rows.map(row=>{
+  return text.trim().split('\n').map(row=>{
     const cells=[]; let cur='',inQ=false;
-    for(let c of row){
-      if(c==='"') inQ=!inQ;
-      else if(c===',' && !inQ){cells.push(cur);cur='';}
-      else cur+=c;
-    }
-    cells.push(cur);
-    return cells.map(c=>c.trim());
+    for(let c of row){ if(c==='"') inQ=!inQ; else if(c===','&&!inQ){cells.push(cur);cur='';}else cur+=c; }
+    cells.push(cur); return cells.map(c=>c.trim());
   });
 }
-
 async function fetchSheet(aba){
-  for(const base of [SHEET_PUB, SHEET_GVZ]){
-    try{
-      const res=await fetch(base+encodeURIComponent(aba)+'&t='+Date.now(),{cache:'no-store'});
-      if(!res.ok) continue;
-      const text=await res.text();
-      if(text.includes('Signin')||text.length<5) continue;
-      const rows=parseCSV(text);
-      if(rows.length>0) return rows;
-    }catch(e){}
-  }
-  return [];
+  try{
+    const r=await fetch(SHEET_PUB+encodeURIComponent(aba)+'&t='+Date.now(),{cache:'no-store'});
+    if(!r.ok) return [];
+    const t=await r.text();
+    if(t.includes('Signin')||t.length<5) return [];
+    return parseCSV(t);
+  }catch(e){ return []; }
 }
-
-function corParaNome(cor){
-  if(!cor||cor==='-') return '-';
-  const map={
-    'rgb(28, 28, 28)':'Preto',
-    'rgb(28, 43, 66)':'Azul Marinho',
-    'rgb(107, 122, 159)':'Azul',
-    'rgb(74, 103, 65)':'Verde',
-    'rgb(240, 237, 230)':'Cru',
-    'rgb(107, 58, 42)':'Marrom',
-    'rgb(158, 163, 168)':'Cinza',
-    'rgb(139, 115, 85)':'Bege',
-    'rgb(232, 221, 208)':'Cru',
-  };
-  const k=cor.trim();
-  if(map[k]) return map[k];
-  const m=k.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-  if(m){
-    const r=+m[1],g=+m[2],b=+m[3];
-    if(r<50&&g<50&&b<50) return 'Preto';
-    if(r>200&&g>190&&b>180) return 'Cru';
-    if(b>r+30&&b>g+10) return 'Azul';
-    if(g>r&&g>b) return 'Verde';
-    if(r>g+20&&r>b+30) return 'Marrom';
-    if(Math.abs(r-g)<15&&Math.abs(g-b)<15&&r>100) return 'Cinza';
-  }
-  return cor;
-}
-
-function formatItens(itens){
-  if(!itens) return '-';
-  return itens.split('/').map(i=>{
-    const s=i.trim().replace(/Cor:\s*(rgb\([^)]+\))/g,(_,rgb)=>'Cor: '+corParaNome(rgb));
-    return '<div class="item-line">'+s+'</div>';
-  }).join('');
-}
-
 let dadosPedidos=[],dadosCarrinhos=[],dadosProdutos=[];
-
 async function loadData(){
   document.getElementById('lastUpdate').textContent='Carregando...';
-  const [p,c,pr]=await Promise.all([
-    fetchSheet('compra_finalizada'),
-    fetchSheet('checkout_iniciado'),
-    fetchSheet('produto_selecionado')
-  ]);
-  dadosPedidos  = p.length>1  ? p.slice(1).filter(r=>r[0])  : [];
-  dadosCarrinhos= c.length>1  ? c.slice(1).filter(r=>r[0])  : [];
-  dadosProdutos = pr.length>1 ? pr.slice(1).filter(r=>r[0]) : [];
-  renderCards();
-  renderPedidos(dadosPedidos);
-  renderCarrinhos(dadosCarrinhos);
-  renderProdutos(dadosProdutos);
+  const [p,c,pr]=await Promise.all([fetchSheet('compra_finalizada'),fetchSheet('checkout_iniciado'),fetchSheet('produto_selecionado')]);
+  dadosPedidos  =p.length>1  ?p.slice(1).filter(r=>r[0]) :[];
+  dadosCarrinhos=c.length>1  ?c.slice(1).filter(r=>r[0]) :[];
+  dadosProdutos =pr.length>1 ?pr.slice(1).filter(r=>r[0]):[];
+  renderCards(); renderPedidos(dadosPedidos); renderCarrinhos(dadosCarrinhos); renderProdutos(dadosProdutos);
   document.getElementById('lastUpdate').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR');
 }
-
 function renderCards(){
   document.getElementById('cardPedidos').textContent=dadosPedidos.length;
-  const totais=dadosPedidos.map(r=>parseFloat((r[7]||'0').replace('R$','').replace(',','.').trim())).filter(n=>!isNaN(n)&&n>0);
-  const media=totais.length?(totais.reduce((a,b)=>a+b,0)/totais.length):0;
-  document.getElementById('cardTicket').textContent='R$ '+media.toFixed(0);
-  const sessionsPedidos=new Set(dadosPedidos.map(r=>r[1]));
-  const abandonados=dadosCarrinhos.filter(r=>!sessionsPedidos.has(r[1]));
-  document.getElementById('cardCarrinhos').textContent=abandonados.length;
-  const freq={};
-  dadosProdutos.forEach(r=>{const p=r[2]||'?';freq[p]=(freq[p]||0)+1;});
+  const tots=dadosPedidos.map(r=>parseFloat((r[7]||'0').replace('R$','').replace(',','.').trim())).filter(n=>!isNaN(n)&&n>0);
+  document.getElementById('cardTicket').textContent='R$ '+(tots.length?(tots.reduce((a,b)=>a+b,0)/tots.length).toFixed(0):'0');
+  const sess=new Set(dadosPedidos.map(r=>r[1]));
+  document.getElementById('cardCarrinhos').textContent=dadosCarrinhos.filter(r=>!sess.has(r[1])).length;
+  const freq={};dadosProdutos.forEach(r=>{const p=r[2]||'?';freq[p]=(freq[p]||0)+1;});
   const top=Object.entries(freq).sort((a,b)=>b[1]-a[1])[0];
   document.getElementById('cardTopProd').textContent=top?top[0].split(' ').slice(0,2).join(' '):'—';
 }
-
 function renderPedidos(rows){
   if(!rows.length){document.getElementById('tPedidos').innerHTML='<div class="loading">Nenhum pedido ainda.</div>';return;}
   let h='<table><thead><tr><th>Data</th><th>Nome</th><th>Email</th><th>Telefone</th><th>Endereço</th><th>Itens</th><th>Total</th></tr></thead><tbody>';
   rows.forEach(r=>{
-    const [ts,sid,nome,email,tel,end,itens,total]=r;
-    const data=ts?new Date(ts).toLocaleString('pt-BR'):'-';
-    h+=`<tr><td style="white-space:nowrap;font-size:12px">${data}</td><td><strong>${nome||'-'}</strong></td><td><a href="mailto:${email}" style="color:#3264AA">${email||'-'}</a></td><td>${tel||'-'}</td><td style="font-size:12px">${end||'-'}</td><td style="max-width:280px">${formatItens(itens)}</td><td><strong style="color:#3264AA">${total||'-'}</strong></td></tr>`;
+    const d=r[0]?new Date(r[0]).toLocaleString('pt-BR'):'-';
+    const itens=(r[6]||'').split('/').map(i=>'<div class="item-line">'+i.trim()+'</div>').join('');
+    h+=`<tr><td style="white-space:nowrap;font-size:12px">${d}</td><td><strong>${r[2]||'-'}</strong></td><td><a href="mailto:${r[3]}" style="color:#3264AA">${r[3]||'-'}</a></td><td>${r[4]||'-'}</td><td style="font-size:12px">${r[5]||'-'}</td><td style="max-width:260px">${itens}</td><td><strong style="color:#3264AA">${r[7]||'-'}</strong></td></tr>`;
   });
-  h+='</tbody></table>';
-  document.getElementById('tPedidos').innerHTML=h;
+  document.getElementById('tPedidos').innerHTML=h+'</tbody></table>';
 }
-
 function renderCarrinhos(rows){
-  const sessionsPedidos=new Set(dadosPedidos.map(r=>r[1]));
-  const nomesPorSession={};
-  dadosPedidos.forEach(r=>{if(r[1]&&r[2]) nomesPorSession[r[1]]=r[2];});
+  const sess=new Set(dadosPedidos.map(r=>r[1]));
   if(!rows.length){document.getElementById('tCarrinhos').innerHTML='<div class="loading">Nenhum carrinho salvo ainda.</div>';return;}
-  let h='<table><thead><tr><th>Data</th><th>Cliente</th><th>Itens</th><th>Total</th><th>Status</th></tr></thead><tbody>';
+  let h='<table><thead><tr><th>Data</th><th>Itens</th><th>Total</th><th>Status</th></tr></thead><tbody>';
   rows.forEach(r=>{
-    const [ts,sid,itens,total]=r;
-    const data=ts?new Date(ts).toLocaleString('pt-BR'):'-';
-    const nome=nomesPorSession[sid]||'-';
-    const finalizado=sessionsPedidos.has(sid);
-    const badge=finalizado?'<span class="badge badge-green">Finalizado</span>':'<span class="badge badge-yellow">Abandonado</span>';
-    h+=`<tr><td style="white-space:nowrap;font-size:12px">${data}</td><td><strong>${nome}</strong></td><td style="max-width:280px">${formatItens(itens)}</td><td><strong>${total||'-'}</strong></td><td>${badge}</td></tr>`;
+    const d=r[0]?new Date(r[0]).toLocaleString('pt-BR'):'-';
+    const itens=(r[2]||'').split('/').map(i=>'<div class="item-line">'+i.trim()+'</div>').join('');
+    const badge=sess.has(r[1])?'<span class="badge badge-green">Finalizado</span>':'<span class="badge badge-yellow">Abandonado</span>';
+    h+=`<tr><td style="white-space:nowrap;font-size:12px">${d}</td><td style="max-width:280px">${itens}</td><td><strong>${r[3]||'-'}</strong></td><td>${badge}</td></tr>`;
   });
-  h+='</tbody></table>';
-  document.getElementById('tCarrinhos').innerHTML=h;
+  document.getElementById('tCarrinhos').innerHTML=h+'</tbody></table>';
 }
-
 function renderProdutos(rows){
   if(!rows.length){document.getElementById('tProdutos').innerHTML='<div class="loading">Nenhum dado ainda.</div>';return;}
   const freq={};
   rows.forEach(r=>{
-    const prod=r[2]||'?';
-    if(!freq[prod]) freq[prod]={total:0,cores:{},tamanhos:{}};
-    freq[prod].total++;
-    const cor=corParaNome(r[4]||'-'); freq[prod].cores[cor]=(freq[prod].cores[cor]||0)+1;
-    const tam=r[5]||'-'; freq[prod].tamanhos[tam]=(freq[prod].tamanhos[tam]||0)+1;
+    const p=r[2]||'?';if(!freq[p])freq[p]={total:0,cores:{},tams:{}};
+    freq[p].total++;
+    const cor=r[4]||'-';freq[p].cores[cor]=(freq[p].cores[cor]||0)+1;
+    const tam=r[5]||'-';freq[p].tams[tam]=(freq[p].tams[tam]||0)+1;
   });
-  const sorted=Object.entries(freq).sort((a,b)=>b[1].total-a[1].total);
   let h='<table><thead><tr><th>Produto</th><th>Vezes Selecionado</th><th>Cor Mais Escolhida</th><th>Tamanho Mais Escolhido</th></tr></thead><tbody>';
-  sorted.forEach(([prod,d])=>{
-    const topCor=Object.entries(d.cores).sort((a,b)=>b[1]-a[1])[0]?.[0]||'-';
-    const topTam=Object.entries(d.tamanhos).sort((a,b)=>b[1]-a[1])[0]?.[0]||'-';
-    h+=`<tr><td><strong>${prod}</strong></td><td><span class="badge badge-green">${d.total}x</span></td><td>${topCor}</td><td><strong>${topTam}</strong></td></tr>`;
+  Object.entries(freq).sort((a,b)=>b[1].total-a[1].total).forEach(([p,d])=>{
+    const tc=Object.entries(d.cores).sort((a,b)=>b[1]-a[1])[0]?.[0]||'-';
+    const tt=Object.entries(d.tams).sort((a,b)=>b[1]-a[1])[0]?.[0]||'-';
+    h+=`<tr><td><strong>${p}</strong></td><td><span class="badge badge-green">${d.total}x</span></td><td>${tc}</td><td><strong>${tt}</strong></td></tr>`;
   });
-  h+='</tbody></table>';
-  document.getElementById('tProdutos').innerHTML=h;
+  document.getElementById('tProdutos').innerHTML=h+'</tbody></table>';
 }
-
 function filterTable(id,q){
-  document.querySelectorAll('#'+id+' tbody tr').forEach(tr=>{
-    tr.style.display=tr.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';
-  });
+  document.querySelectorAll('#'+id+' tbody tr').forEach(tr=>{tr.style.display=tr.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';});
 }
-
-setInterval(()=>{if(sessionStorage.getItem('canu_admin')) loadData();},60000);
-if(sessionStorage.getItem('canu_admin')) loadData();
+setInterval(()=>{if(sessionStorage.getItem('canu_admin'))loadData();},60000);
+if(sessionStorage.getItem('canu_admin'))loadData();
 </script>
 </body>
 </html>
