@@ -330,11 +330,22 @@ function showTab(name, btn){
 }
 
 // ===== BUSCAR DADOS DO GOOGLE SHEETS =====
+// URL base publicada da planilha
+const SHEET_BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQWAX-9PewKh4K0ybeMN-HxgjrysIzxNo-TzztLEBNsyanZn2F_GcbRRHM1oueCm3J02TpBT08FjBwj/pub?output=csv&sheet=';
+
 async function fetchSheet(aba){
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(aba)}`;
-  const res = await fetch(url);
-  const text = await res.text();
-  return parseCSV(text);
+  try {
+    const url = SHEET_BASE_URL + encodeURIComponent(aba);
+    const res = await fetch(url + '&t=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) return [];
+    const text = await res.text();
+    if(text.includes('Signin') || text.includes('accounts.google')) return [];
+    const rows = parseCSV(text);
+    return rows.filter(r=>r.some(c=>c.trim()));
+  } catch(e) {
+    console.error('Erro ao buscar aba ' + aba + ':', e);
+    return [];
+  }
 }
 
 function parseCSV(text){
@@ -364,9 +375,13 @@ async function loadData(){
       fetchSheet('produto_selecionado')
     ]);
 
-    dadosPedidos   = p.slice(1).filter(r=>r[0]);
-    dadosCarrinhos = c.slice(1).filter(r=>r[0]);
-    dadosProdutos  = pr.slice(1).filter(r=>r[0]);
+    dadosPedidos   = p.length > 1 ? p.slice(1).filter(r=>r[0]) : [];
+    dadosCarrinhos = c.length > 1 ? c.slice(1).filter(r=>r[0]) : [];
+    dadosProdutos  = pr.length > 1 ? pr.slice(1).filter(r=>r[0]) : [];
+    
+    if(!p.length && !c.length && !pr.length){
+      document.getElementById('lastUpdate').textContent = '⚠️ Publique a planilha: Arquivo → Compartilhar → Publicar na web';
+    }
 
     renderCards();
     renderPedidos(dadosPedidos);
@@ -381,6 +396,41 @@ async function loadData(){
   }
 }
 
+
+// Converte rgb para nome de cor
+function rgbParaNome(cor) {
+  const mapa = {
+    'rgb(28, 28, 28)':    'Preto',
+    'rgb(28, 43, 66)':    'Azul Marinho',
+    'rgb(107, 122, 159)': 'Azul',
+    'rgb(74, 103, 65)':   'Verde',
+    'rgb(240, 237, 230)': 'Cru',
+    'rgb(28, 28, 28)':    'Preto',
+    'rgb(107, 58, 42)':   'Marrom',
+    'rgb(158, 163, 168)': 'Cinza',
+    'rgb(74, 109, 155)':  'Azul Jeans',
+    'rgb(232, 221, 208)': 'Cru',
+    'rgb(50, 100, 170)':  'Azul',
+    'rgb(90, 130, 192)':  'Azul Médio'
+  };
+  if (!cor) return '-';
+  const key = cor.trim().toLowerCase();
+  for (const [k, v] of Object.entries(mapa)) {
+    if (key === k.toLowerCase()) return v;
+  }
+  // tenta por componentes
+  const m = cor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  if (m) {
+    const r = +m[1], g = +m[2], b = +m[3];
+    if (r < 50 && g < 50 && b < 50) return 'Preto';
+    if (r > 200 && g > 190 && b > 180) return 'Cru';
+    if (b > r + 30 && b > g + 20) return 'Azul';
+    if (g > r && g > b) return 'Verde';
+    if (r > g && r > b + 30) return 'Marrom';
+    if (Math.abs(r-g) < 15 && Math.abs(g-b) < 15) return 'Cinza';
+  }
+  return cor;
+}
 // ===== CARDS =====
 function renderCards(){
   document.getElementById('cardPedidos').textContent = dadosPedidos.length;
@@ -412,7 +462,10 @@ function renderPedidos(rows){
   rows.forEach(r=>{
     const [ts,sid,nome,email,tel,end,itens,total] = r;
     const data = ts ? new Date(ts).toLocaleString('pt-BR') : '-';
-    const itensHtml = (itens||'').split('/').map(i=>`<div class="item-line">${i.trim()}</div>`).join('');
+    const itensHtml = (itens||'').split('/').map(i=>{
+      const linha = i.trim().replace(/Cor: (rgb\([^)]+\))/g, (_, rgb) => 'Cor: ' + rgbParaNome(rgb));
+      return `<div class="item-line">${linha}</div>`;
+    }).join('');
     html += `<tr>
       <td style="white-space:nowrap;font-size:12px;">${data}</td>
       <td><strong>${nome||'-'}</strong></td>
@@ -442,7 +495,10 @@ function renderCarrinhos(rows){
     const badge = finalizado
       ? '<span class="badge badge-green">Finalizado</span>'
       : '<span class="badge badge-yellow">Abandonado</span>';
-    const itensHtml = (itens||'').split('/').map(i=>`<div class="item-line">${i.trim()}</div>`).join('');
+    const itensHtml = (itens||'').split('/').map(i=>{
+      const linha = i.trim().replace(/Cor: (rgb\([^)]+\))/g, (_, rgb) => 'Cor: ' + rgbParaNome(rgb));
+      return `<div class="item-line">${linha}</div>`;
+    }).join('');
     html += `<tr>
       <td style="white-space:nowrap;font-size:12px;">${data}</td>
       <td class="itens-cell">${itensHtml}</td>
